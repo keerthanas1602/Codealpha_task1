@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Language Translator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
+
+<style>
+*{
+  box-sizing:border-box;
+  font-family:'Poppins',system-ui;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:radial-gradient(circle at top,#1f2933,#020617);
+}
+
+.app{
+  width:92%;
+  max-width:900px;
+  background:rgba(255,255,255,0.06);
+  backdrop-filter:blur(18px);
+  color:#f8fafc;
+  padding:28px;
+  border-radius:24px;
+  border:1px solid rgba(255,255,255,0.15);
+  box-shadow:0 40px 90px rgba(0,0,0,.7);
+}
+
+h1{
+  text-align:center;
+  margin-bottom:24px;
+  font-weight:700;
+  letter-spacing:2px;
+  background:linear-gradient(90deg,#38bdf8,#818cf8);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.controls{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+
+select{
+  padding:13px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.2);
+  background:rgba(2,6,23,.8);
+  color:#f1f5f9;
+  font-size:15px;
+}
+
+.area{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-top:18px;
+}
+
+textarea{
+  min-height:190px;
+  padding:16px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.15);
+  resize:none;
+  background:rgba(2,6,23,.85);
+  color:#e5e7eb;
+  font-size:16px;
+}
+
+.actions{
+  display:flex;
+  gap:12px;
+  margin-top:15px;
+}
+
+button{
+  flex:1;
+  padding:14px;
+  border:none;
+  border-radius:18px;
+  font-size:16px;
+  font-weight:600;
+  cursor:pointer;
+  background:linear-gradient(135deg,#38bdf8,#6366f1);
+  color:white;
+  transition:.2s;
+}
+
+button:hover{
+  transform:scale(1.03);
+}
+
+button.secondary{
+  background:linear-gradient(135deg,#22c55e,#4ade80);
+  color:#022c22;
+}
+
+button.copy{
+  background:linear-gradient(135deg,#facc15,#fde047);
+  color:#422006;
+}
+
+button:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
+
+@media(max-width:700px){
+  .controls,.area{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+<h1>Translation Website</h1>
+
+<div class="controls">
+<select id="from">
+  <option value="en">English</option>
+  <option value="ta">Tamil</option>
+  <option value="hi">Hindi</option>
+  <option value="fr">French</option>
+  <option value="es">Spanish</option>
+  <option value="de">German</option>
+</select>
+
+<select id="to">
+  <option value="ta">Tamil</option>
+  <option value="en">English</option>
+  <option value="hi">Hindi</option>
+  <option value="fr">French</option>
+  <option value="es">Spanish</option>
+  <option value="de">German</option>
+</select>
+</div>
+
+<div class="area">
+<textarea id="input" placeholder="Type a word, sentence, or paragraph"></textarea>
+<textarea id="output" placeholder="Translated text appears here" readonly></textarea>
+</div>
+
+<div class="actions">
+<button id="btn">Translate</button>
+<button class="copy" id="copyBtn">📋 Copy</button>
+<button class="secondary" id="speakBtn">🔊 Speak</button>
+</div>
+</div>
+
+<script>
+const btn=document.getElementById("btn")
+const input=document.getElementById("input")
+const output=document.getElementById("output")
+const from=document.getElementById("from")
+const to=document.getElementById("to")
+const copyBtn=document.getElementById("copyBtn")
+const speakBtn=document.getElementById("speakBtn")
+
+btn.addEventListener("click",async()=>{
+  const text=input.value.trim()
+  if(!text){output.value="";return}
+
+  btn.disabled=true
+  btn.textContent="Translating..."
+
+  const url=`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${from.value}|${to.value}`
+  const res=await fetch(url)
+  const data=await res.json()
+
+  output.value=data.responseData.translatedText
+  btn.textContent="Translate"
+  btn.disabled=false
+})
+
+copyBtn.addEventListener("click",()=>{
+  if(!output.value) return
+  navigator.clipboard.writeText(output.value)
+  copyBtn.textContent="✅ Copied"
+  setTimeout(()=>copyBtn.textContent="📋 Copy",1500)
+})
+
+speakBtn.addEventListener("click",()=>{
+  if(!output.value) return
+  const utterance=new SpeechSynthesisUtterance(output.value)
+  utterance.lang=to.value
+  speechSynthesis.speak(utterance)
+})
+</script>
+
+</body>
+</html>
